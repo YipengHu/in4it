@@ -2,8 +2,8 @@
 
 Create a conda env
 ```bash
-conda create -n in4it numpy tensorflow 
+conda create -n in4it numpy h5py tensorflow
 conda activate in4it
-pip install tensorflow-addons
+pip install tensorflow-addons nibabel
 ```
 
