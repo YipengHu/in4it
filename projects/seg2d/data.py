@@ -43,12 +43,13 @@ for fidx,fn in enumerate(image_files):
         raise('shape inconsistent between labels and images')
 
     for dd in range(fobj.shape[2]):
-        h5_id[dataset].create_dataset('/frame_%06d' % frame_idx, fobj.shape[0:2], dtype=frames.dtype, data=frames[:,:,dd])
-        h5_id[dataset].create_dataset('/label_%06d' % frame_idx, labels.shape[0:2]+(labels.shape[3],), dtype=labels.dtype, data=labels[:,:,dd,:])
+        h5_id[dataset].create_dataset('/frame_%05d' % frame_idx, fobj.shape[0:2], dtype=frames.dtype, data=frames[:,:,dd])
+        for ll in range(labels.shape[3]):
+            h5_id[dataset].create_dataset('/label_%05d_%02d' % (frame_idx,ll), fobj.shape[0:2], dtype=labels.dtype, data=labels[:,:,dd,ll])
         frame_idx += 1
 
 for fid in h5_id.values():
     fid.flush()
     fid.close()
 
-print('%d frames saved at %s' % (frame_idx,os.path.abspath(save_path)))
+print('%d frames saved at %s.' % (frame_idx,os.path.abspath(save_path)))
