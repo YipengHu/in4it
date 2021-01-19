@@ -1,3 +1,4 @@
+import os
 
 import tensorflow as tf
 
@@ -12,7 +13,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 minibatch_size = 32
 network_size = 16
 learning_rate = 1e-4
-num_epochs = 100
+num_epochs = 200
 freq_info = 1
 freq_save = 10
 save_path = "results"
@@ -79,5 +80,5 @@ for epoch in range(num_epochs):
             tf.reduce_mean(tf.concat(losses_val_all,axis=0)),
             tf.reduce_mean(tf.concat(metrics_all,axis=0))
             ))
-        tf.saved_model.save(seg_net, save_path+'/epoch{:d}'.format(epoch))
+        tf.saved_model.save(seg_net, os.path.join(save_path, '/epoch{:d}'.format(epoch)))
         tf.print('Model saved.')
