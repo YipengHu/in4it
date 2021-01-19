@@ -9,8 +9,8 @@ class ResUNet(tf.keras.Model):
         super(ResUNet, self).__init__()
         self.encoder = [self._resnet_block(2**i*init_ch, type='down') for i in range(num_levels)]
         self.encoder += [self._resnet_block(2**num_levels*init_ch, type='none')]
-        self.decoder = [self._resnet_block(2**i*init_ch, type='up') for i in range(num_levels,1,-1)] 
-        self.decoder += [self._resnet_block(2*init_ch, type='none')]
+        self.decoder = [self._resnet_block(2**i*init_ch, type='up') for i in range(num_levels,0,-1)] 
+        self.decoder += [self._resnet_block(init_ch, type='none')]
         self.out_layer = layers.Conv2D(
             filters=init_ch,
             kernel_size=(3,3),
@@ -27,8 +27,9 @@ class ResUNet(tf.keras.Model):
             skips += [x]
         x = self.encoder[-1](x)
         for up, skip in zip(self.decoder[:-1], reversed(skips)):
-            x += skip
+            x = self._resize_to(x,skip) + skip
             x = up(x)
+        x = self._resize_to(x,inputs)
         x = self.decoder[-1](x)
         return self.out_layer(x)
 
@@ -72,7 +73,6 @@ class ResUNet(tf.keras.Model):
                     strides=(2,2), 
                     padding='same')(x)
                 y = layers.BatchNormalization()(x) if bn else x
-                y = layers.BatchNormalization()(x) if bn else x
             elif type == "up":
                 x = layers.Conv2DTranspose(
                     filters=ch/2,
@@ -89,9 +89,11 @@ class ResUNet(tf.keras.Model):
             return y
 
         return _call
-
-
-
-
-
-        
+    
+    def _resize_to(self, x, y):
+        if x.shape[1:3]==y.shape[1:3]:
+            return x
+        elif  any([abs(x.shape[i]-y.shape[i])>1 for i in [1,2]]):
+            raise Warning('padding/cropping more than 1.')
+        else:
+            return tf.image.resize_with_crop_or_pad(x, y.shape[1], y.shape[2])
