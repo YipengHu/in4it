@@ -16,6 +16,7 @@ class H5DataLoader():
             self.num_labels_per_frame = int(len(self.label_keys)/len(self.frame_keys))
         if not set([k.split('_')[1] for k in self.frame_keys]).issubset(set([k.split('_')[1] for k in self.label_keys])):
             raise Exception('not all frames are labeled.')
+        self.frame_size = self.h5_file[self.frame_keys[0]].shape[0:2]
         
         self.training = training
         if not self.training:
