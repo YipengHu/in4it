@@ -12,11 +12,12 @@ import utils
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 ## settings
-minibatch_size = 16
+minibatch_size = 4
+network_size = 16
 learning_rate = 1e-3
-num_epochs = 200
+num_epochs = 100
 freq_info = 1
-freq_val = 5
+freq_val = 10
 save_path = "results"
 
 if not os.path.exists(save_path):
@@ -35,7 +36,7 @@ loader_val = H5DataLoader(data_files["val"], 3, training=False)
 
 
 ## network
-seg_net = ResUNet(init_ch=32)
+seg_net = ResUNet(init_ch=network_size)
 seg_net = seg_net.build(input_shape=loader_train.frame_size+(1,))
 
 
