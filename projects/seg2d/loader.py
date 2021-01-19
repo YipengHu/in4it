@@ -44,4 +44,4 @@ class H5DataLoader():
         frames /= frames.max(axis=(1,2),keepdims=True)  #normalisation for unsigned data type
         # labels /= labels.max(axis=(1,2),keepdims=True) + np.finfo('float32').eps
         self.batch_idx += 1
-        return frames, labels
+        return frames[...,np.newaxis], labels[...,np.newaxis] #add ch

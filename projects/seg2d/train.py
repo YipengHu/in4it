@@ -48,12 +48,12 @@ optimizer = tf.optimizers.Adam(learning_rate)
 def train_step(images, labels):
     with tf.GradientTape() as tape:
         # images, labels = tf.convert_to_tensor(images), tf.convert_to_tensor(labels)
-        images, labels = utils.random_image_label_transform(images, labels)
+        images, labels = utils.random_image_label_transform(tf.squeeze(images), tf.squeeze(labels))
         predicts = seg_net(images, training=True)
         loss = tf.reduce_mean(utils.dice_loss(predicts, labels))
     gradients = tape.gradient(loss, seg_net.trainable_variables)
     optimizer.apply_gradients(zip(gradients, seg_net.trainable_variables))
-    return loss, images, labels
+    return loss
 
 # validation step
 @tf.function
@@ -66,7 +66,7 @@ def val_step(images, labels):
 # train data batching
 for epoch in range(num_epochs):
     for frames, masks in loader_train:
-        loss_train, images_warped, labels_warped = train_step(frames, masks)
+        loss_train = train_step(frames, masks)
     
     if (epoch+1) % freq_info == 0:
         tf.print('Epoch {}: loss={:0.5f}'.format(epoch,loss_train))
