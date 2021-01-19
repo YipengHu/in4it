@@ -74,6 +74,7 @@ def resample_linear(grid_data, sample_grids):
 
 @tf.function
 def random_image_label_transform(images, labels, add_dim=True):
+    images, labels = tf.squeeze(images), tf.squeeze(labels)  #avoid channel confusion
     # images: [batch, height, width]
     reference_grid = get_reference_grid(images.shape[0:3])
     random_transform = random_transform_generator(images.shape[0], corner_scale=0.1)

@@ -1,8 +1,5 @@
 
-import os
-
 import tensorflow as tf
-import h5py
 
 from loader import H5DataLoader 
 from network import ResUNet
@@ -17,7 +14,7 @@ network_size = 16
 learning_rate = 1e-4
 num_epochs = 100
 freq_info = 1
-freq_val = 10
+freq_save = 10
 save_path = "results"
 
 if not os.path.exists(save_path):
@@ -48,7 +45,7 @@ optimizer = tf.optimizers.Adam(learning_rate)
 def train_step(images, labels):
     with tf.GradientTape() as tape:
         # images, labels = tf.convert_to_tensor(images), tf.convert_to_tensor(labels)
-        images, labels = utils.random_image_label_transform(tf.squeeze(images), tf.squeeze(labels))
+        images, labels = utils.random_image_label_transform(images, labels)
         predicts = seg_net(images, training=True)
         loss = tf.reduce_mean(utils.dice_loss(predicts, labels))
     gradients = tape.gradient(loss, seg_net.trainable_variables)
@@ -61,7 +58,7 @@ def val_step(images, labels):
     predicts = seg_net(images, training=False)
     losses = utils.dice_loss(predicts, labels)
     metrics = utils.dice_binary(predicts, labels)
-    return losses, metrics, predicts
+    return losses, metrics
 
 # train data batching
 for epoch in range(num_epochs):
@@ -71,23 +68,16 @@ for epoch in range(num_epochs):
     if (epoch+1) % freq_info == 0:
         tf.print('Epoch {}: loss={:0.5f}'.format(epoch,loss_train))
 
-    if (epoch+1) % freq_val == 0:
-        h5file = h5py.File(os.path.join(save_path,"epoch-{:05d}.h5".format(epoch)),'a')
+    if (epoch+1) % freq_save == 0:
         losses_val_all, metrics_all = [], []
         for idx, (frames_val, masks_val) in enumerate(loader_val):
-            losses_val, metrics, preds_val = val_step(frames_val, masks_val)
+            losses_val, metrics = val_step(frames_val, masks_val)
             losses_val_all += [losses_val]
             metrics_all += [metrics]
-            for dd in preds_val.shape[0]:
-                h5file.create_dataset(
-                    "/frame_%05d" % idx*preds_val.shape[0]+dd,
-                    preds_val.shape[1:3],
-                    dtype = preds_val.dtype,
-                    data = preds_val[dd,...]
-                    )    
         tf.print('Epoch {}: val-loss={:0.5f}, val-metric={:0.5f}'.format(
-            tf.reduce_mean(tf.stack(losses_val_all,axis=0)),
-            tf.reduce_mean(tf.stack(metrics_all,axis=0))
+            epoch,
+            tf.reduce_mean(tf.concat(losses_val_all,axis=0)),
+            tf.reduce_mean(tf.concat(metrics_all,axis=0))
             ))
-        h5file.flush()
-        h5file.close()
+        tf.saved_model.save(seg_net, save_path+'/epoch{:d}'.format(epoch))
+        tf.print('Model saved.')
