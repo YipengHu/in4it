@@ -12,12 +12,12 @@ class ResUNet(tf.keras.Model):
         self.decoder = [self._resnet_block(2**i*init_ch, type='up') for i in range(num_levels,0,-1)] 
         self.decoder += [self._resnet_block(init_ch, type='none')]
         self.out_layer = layers.Conv2D(
-            filters=init_ch,
+            filters=out_ch,
             kernel_size=(3,3),
             strides=(1,1), 
             padding='same', 
             use_bias=True, 
-            activation=None)
+            activation='sigmoid')
 
     def call(self, inputs):
         x = inputs
