@@ -12,9 +12,9 @@ import utils
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 ## settings
-minibatch_size = 4
+minibatch_size = 32
 network_size = 16
-learning_rate = 1e-3
+learning_rate = 1e-4
 num_epochs = 100
 freq_info = 1
 freq_val = 10
@@ -47,11 +47,13 @@ optimizer = tf.optimizers.Adam(learning_rate)
 @tf.function
 def train_step(images, labels):
     with tf.GradientTape() as tape:
+        # images, labels = tf.convert_to_tensor(images), tf.convert_to_tensor(labels)
+        images, labels = utils.random_image_label_transform(images, labels)
         predicts = seg_net(images, training=True)
         loss = tf.reduce_mean(utils.dice_loss(predicts, labels))
     gradients = tape.gradient(loss, seg_net.trainable_variables)
     optimizer.apply_gradients(zip(gradients, seg_net.trainable_variables))
-    return loss
+    return loss, images, labels
 
 # validation step
 @tf.function
@@ -64,7 +66,7 @@ def val_step(images, labels):
 # train data batching
 for epoch in range(num_epochs):
     for frames, masks in loader_train:
-        loss_train = train_step(frames, masks)
+        loss_train, images_warped, labels_warped = train_step(frames, masks)
     
     if (epoch+1) % freq_info == 0:
         tf.print('Epoch {}: loss={:0.5f}'.format(epoch,loss_train))
@@ -73,7 +75,7 @@ for epoch in range(num_epochs):
         h5file = h5py.File(os.path.join(save_path,"epoch-{:05d}.h5".format(epoch)),'a')
         losses_val_all, metrics_all = [], []
         for idx, (frames_val, masks_val) in enumerate(loader_val):
-            losses_val, metrics, preds_val = train_step(frames_val, masks_val)
+            losses_val, metrics, preds_val = val_step(frames_val, masks_val)
             losses_val_all += [losses_val]
             metrics_all += [metrics]
             for dd in preds_val.shape[0]:
