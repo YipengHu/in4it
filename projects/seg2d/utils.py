@@ -77,7 +77,7 @@ def random_image_label_transform(images, labels, add_dim=True):
     images, labels = tf.squeeze(images), tf.squeeze(labels)  #avoid channel confusion
     # images: [batch, height, width]
     reference_grid = get_reference_grid(images.shape[0:3])
-    random_transform = random_transform_generator(images.shape[0], corner_scale=0.1)
+    random_transform = random_transform_generator(images.shape[0], corner_scale=0.2)
     sample_grids = warp_grid(reference_grid, random_transform)
     images, labels = resample_linear(images, sample_grids), resample_linear(labels, sample_grids)
     if add_dim:
@@ -89,6 +89,6 @@ def random_image_label_transform(images, labels, add_dim=True):
 def random_image_transform(images):
     # images: [batch, height, width]
     reference_grid = get_reference_grid(images.shape[0:3])
-    random_transform = random_transform_generator(images.shape[0], corner_scale=0.1)
+    random_transform = random_transform_generator(images.shape[0], corner_scale=0.2)
     sample_grids = warp_grid(reference_grid, random_transform)
     return resample_linear(images, sample_grids)

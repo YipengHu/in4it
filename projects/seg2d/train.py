@@ -22,15 +22,9 @@ if not os.path.exists(save_path):
     os.makedirs(save_path)
 
 ## data loader
-data_files = {
-    'train': 'dataset/train.h5',
-    'val': 'dataset/val.h5',
-    'test': 'dataset/test.h5'
-    }
-
+data_files = {'train': 'dataset/train.h5', 'val': 'dataset/val.h5'}
 loader_train = H5DataLoader(data_files["train"], minibatch_size, training=True)
 loader_val = H5DataLoader(data_files["val"], 3, training=False)
-# loader_test = H5DataLoader(data_files["test"], 1, training=False)
 
 
 ## network
@@ -41,9 +35,8 @@ seg_net = seg_net.build(input_shape=loader_train.frame_size+(1,))
 ## train
 optimizer = tf.optimizers.Adam(learning_rate)
 
-# train step
 @tf.function
-def train_step(images, labels):
+def train_step(images, labels):  # train step
     with tf.GradientTape() as tape:
         # images, labels = tf.convert_to_tensor(images), tf.convert_to_tensor(labels)
         images, labels = utils.random_image_label_transform(images, labels)
@@ -53,17 +46,15 @@ def train_step(images, labels):
     optimizer.apply_gradients(zip(gradients, seg_net.trainable_variables))
     return loss
 
-# validation step
 @tf.function
-def val_step(images, labels):
+def val_step(images, labels):  # validation step
     predicts = seg_net(images, training=False)
     losses = utils.dice_loss(predicts, labels)
     metrics = utils.dice_binary(predicts, labels)
     return losses, metrics
 
-# train data batching
 for epoch in range(num_epochs):
-    for frames, masks in loader_train:
+    for frames, masks in loader_train: 
         loss_train = train_step(frames, masks)
     
     if (epoch+1) % freq_info == 0:
