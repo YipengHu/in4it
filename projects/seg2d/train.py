@@ -13,9 +13,9 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 minibatch_size = 32
 network_size = 16
 learning_rate = 1e-4
-num_epochs = 200
+num_epochs = 500
 freq_info = 1
-freq_save = 20
+freq_save = 50
 save_path = "results"
 
 if not os.path.exists(save_path):
@@ -38,7 +38,6 @@ optimizer = tf.optimizers.Adam(learning_rate)
 @tf.function
 def train_step(images, labels):  # train step
     with tf.GradientTape() as tape:
-        # images, labels = tf.convert_to_tensor(images), tf.convert_to_tensor(labels)
         images, labels = utils.random_image_label_transform(images, labels)
         predicts = seg_net(images, training=True)
         loss = tf.reduce_mean(utils.dice_loss(predicts, labels))
@@ -54,13 +53,13 @@ def val_step(images, labels):  # validation step
     return losses, dices, false_positives
 
 for epoch in range(num_epochs):
-    '''
+
     for frames, masks in loader_train: 
         loss_train = train_step(frames, masks)
 
     if (epoch+1) % freq_info == 0:
         tf.print('Epoch {}: loss={:0.5f}'.format(epoch,loss_train))
-    '''
+
     if (epoch+1) % freq_save == 0:
         losses_all, dices_all, false_positives_all = [], [], []
         for frames_val, masks_val in loader_val:

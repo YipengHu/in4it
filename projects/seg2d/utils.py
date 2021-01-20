@@ -33,7 +33,7 @@ def get_reference_grid(grid_size):
                         indexing='ij'), axis=2), dtype=tf.float32)
     return tf.tile(tf.expand_dims(grid, axis=0), [grid_size[0],1,1,1])
 
-def random_transform_generator(batch, corner_scale=.1):
+def random_transform_generator(batch, corner_scale=.2):
     # righ-multiplication affine
     ori_corners = tf.tile([[[1.,1.], [1.,-1.], [-1.,1.], [-1.,-1.]]], [batch,1,1])
     new_corners = ori_corners + tf.random.uniform([batch,4,2], -corner_scale, corner_scale)    
