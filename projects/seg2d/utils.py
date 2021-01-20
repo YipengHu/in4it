@@ -3,19 +3,26 @@ import tensorflow as tf
 
 
 @tf.function
-def dice_loss(ps,ts,eps=1e-6):
-    numerator = tf.reduce_sum(ts*ps,axis=[1,2,3])*2 + eps
-    denominator = tf.reduce_sum(ts,axis=[1,2,3]) + tf.reduce_sum(ps,axis=[1,2,3]) + eps
-    return 1 - numerator/denominator
+def dice_loss(ps,ts):
+    return - dice_score(ps,ts)
+
+def dice_metric_fg(ps,ts):
+    all_negatives = tf.reduce_all(ts==0,axis=[1,2,3])
+    any_positives = tf.math.logical_not(all_negatives)
+    false_postives = tf.reduce_sum(tf.cast(tf.boolean_mask(ps,all_negatives,axis=0)>=0.5,ps.dtype),axis=[1,2,3])
+    dice = dice_binary(tf.boolean_mask(ps,any_positives,axis=0),tf.boolean_mask(ts,any_positives,axis=0))
+    return dice, false_postives
 
 
-@tf.function
-def dice_binary(ps,ts,eps=1e-6):
+def dice_binary(ps,ts):
     ps = tf.cast(ps>=.5,dtype=ps.dtype)
     ts = tf.cast(ts>=.5,dtype=ts.dtype)
+    return dice_score(ps,ts)
+
+def dice_score(ps,ts,eps=1e-7):
     numerator = tf.reduce_sum(ts*ps,axis=[1,2,3])*2 + eps
     denominator = tf.reduce_sum(ts,axis=[1,2,3]) + tf.reduce_sum(ps,axis=[1,2,3]) + eps
-    return 1 - numerator/denominator
+    return numerator/denominator
 
 
 def get_reference_grid(grid_size):
@@ -26,7 +33,6 @@ def get_reference_grid(grid_size):
                         indexing='ij'), axis=2), dtype=tf.float32)
     return tf.tile(tf.expand_dims(grid, axis=0), [grid_size[0],1,1,1])
 
-
 def random_transform_generator(batch, corner_scale=.1):
     # righ-multiplication affine
     ori_corners = tf.tile([[[1.,1.], [1.,-1.], [-1.,1.], [-1.,-1.]]], [batch,1,1])
@@ -34,7 +40,6 @@ def random_transform_generator(batch, corner_scale=.1):
     ori_corners = tf.concat([ori_corners,tf.ones([batch,4,1])], axis=2)
     new_corners = tf.concat([new_corners,tf.ones([batch,4,1])], axis=2)
     return tf.stack([tf.linalg.lstsq(ori_corners[n],new_corners[n]) for n in range(batch)], axis=0)
-
 
 def warp_grid(grid, transform):
     # grid: [batch, height, width, 2]
@@ -44,7 +49,6 @@ def warp_grid(grid, transform):
                     tf.ones([batch,height*width,1])], axis=2)
     grid_warped = tf.matmul(grid, transform)
     return tf.reshape(grid_warped[...,:2], [batch,height,width,2])
-
 
 @tf.function
 def resample_linear(grid_data, sample_grids):
@@ -71,7 +75,6 @@ def resample_linear(grid_data, sample_grids):
     wj0 = 1 - wj1
     return tf.reshape(q00*wi0*wj0 + q01*wi0*wj1 + q11*wi1*wj1 + q10*wi1*wj0, [batch,height,width])
 
-
 @tf.function
 def random_image_label_transform(images, labels, add_dim=True):
     images, labels = tf.squeeze(images), tf.squeeze(labels)  #avoid channel confusion
@@ -83,7 +86,6 @@ def random_image_label_transform(images, labels, add_dim=True):
     if add_dim:
         images, labels = tf.expand_dims(images,axis=3), tf.expand_dims(labels,axis=3)
     return images, labels
-
 
 @tf.function
 def random_image_transform(images):

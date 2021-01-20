@@ -50,26 +50,29 @@ def train_step(images, labels):  # train step
 def val_step(images, labels):  # validation step
     predicts = seg_net(images, training=False)
     losses = utils.dice_loss(predicts, labels)
-    metrics = utils.dice_binary(predicts, labels)
-    return losses, metrics
+    dices, false_positives = utils.dice_metric_fg(predicts, labels)
+    return losses, dices, false_positives
 
 for epoch in range(num_epochs):
+    '''
     for frames, masks in loader_train: 
         loss_train = train_step(frames, masks)
 
     if (epoch+1) % freq_info == 0:
         tf.print('Epoch {}: loss={:0.5f}'.format(epoch,loss_train))
-
+    '''
     if (epoch+1) % freq_save == 0:
-        losses_val_all, metrics_all = [], []
-        for idx, (frames_val, masks_val) in enumerate(loader_val):
-            losses_val, metrics = val_step(frames_val, masks_val)
-            losses_val_all += [losses_val]
-            metrics_all += [metrics]
-        tf.print('Epoch {}: val-loss={:0.5f}, val-metric={:0.5f}'.format(
+        losses_all, dices_all, false_positives_all = [], [], []
+        for frames_val, masks_val in loader_val:
+            losses, dices, false_positives = val_step(frames_val, masks_val)
+            losses_all += [losses]
+            dices_all += [dices]
+            false_positives_all += [false_positives]
+        tf.print('Epoch {}: val-loss={:0.5f}, val-dice={:0.5f}, false_positives={:0.5f}'.format(
             epoch,
-            tf.reduce_mean(tf.concat(losses_val_all,axis=0)),
-            tf.reduce_mean(tf.concat(metrics_all,axis=0))
+            tf.reduce_mean(tf.concat(losses_all,axis=0)),
+            tf.reduce_mean(tf.concat(dices_all,axis=0)),
+            tf.reduce_mean(tf.concat(false_positives_all,axis=0))
             ))
         tf.saved_model.save(seg_net, os.path.join(save_path, 'epoch{:d}'.format(epoch)))
         tf.print('Model saved.')
