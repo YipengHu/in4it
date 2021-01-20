@@ -17,7 +17,7 @@ loader_test = H5DataLoader(data_files["test"], 3, training=False)
 
 
 losses_all, metrics_all = [], []
-for idx, (frames_val, masks_val) in enumerate(loader_val):
+for idx, (frames_val, masks_val) in enumerate(loader_test):
     
     if idx%5 ==0:
         preds_val = imported(frames_val, training=False)

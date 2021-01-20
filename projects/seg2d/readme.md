@@ -4,6 +4,6 @@ Create a conda env
 ```bash
 conda create -n in4it numpy h5py tensorflow
 conda activate in4it
-pip install tensorflow-addons nibabel
+pip install nibabel matplotlib
 ```
 
