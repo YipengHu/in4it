@@ -2,7 +2,7 @@ import os
 
 import tensorflow as tf
 
-from loader import H5DataLoader 
+from loader import H5DataLoader
 from network import ResUNet
 import utils
 
@@ -15,7 +15,7 @@ network_size = 16
 learning_rate = 1e-4
 num_epochs = 200
 freq_info = 1
-freq_save = 10
+freq_save = 20
 save_path = "results"
 
 if not os.path.exists(save_path):
@@ -56,7 +56,7 @@ def val_step(images, labels):  # validation step
 for epoch in range(num_epochs):
     for frames, masks in loader_train: 
         loss_train = train_step(frames, masks)
-    
+
     if (epoch+1) % freq_info == 0:
         tf.print('Epoch {}: loss={:0.5f}'.format(epoch,loss_train))
 
@@ -71,5 +71,5 @@ for epoch in range(num_epochs):
             tf.reduce_mean(tf.concat(losses_val_all,axis=0)),
             tf.reduce_mean(tf.concat(metrics_all,axis=0))
             ))
-        tf.saved_model.save(seg_net, os.path.join(save_path, '/epoch{:d}'.format(epoch)))
+        tf.saved_model.save(seg_net, os.path.join(save_path, 'epoch{:d}'.format(epoch)))
         tf.print('Model saved.')
