@@ -8,7 +8,7 @@ import utils
 
 save_path = "results"
 epoch = 79
-imported = tf.saved_model.load(os.path.join(save_path, 'epoch{:d}'.format(epoch)))
+seg_net_imported = tf.saved_model.load(os.path.join(save_path, 'epoch{:d}'.format(epoch)))
 
 
 data_files = {'test': 'dataset/test.h5', 'val': 'dataset/val.h5'}
@@ -20,7 +20,7 @@ losses_all, metrics_all = [], []
 for idx, (frames_val, masks_val) in enumerate(loader_test):
     
     if idx%5 ==0:
-        preds_val = imported(frames_val, training=False)
+        preds_val = seg_net_imported(frames_val, training=False)
 
         losses = utils.dice_loss(preds_val, masks_val)
         dices, false_positives = utils.dice_metric_fg(preds_val, masks_val)

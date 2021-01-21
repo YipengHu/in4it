@@ -23,7 +23,7 @@ if not os.path.exists(save_path):
 
 ## data loader
 data_files = {'train': 'dataset/train.h5', 'val': 'dataset/val.h5'}
-loader_train = H5DataLoader(data_files["train"], minibatch_size, training=True)
+loader_train = H5DataLoader(data_files["train"], minibatch_size, training=True, labeled_only='all')
 loader_val = H5DataLoader(data_files["val"], 3, training=False)
 
 
