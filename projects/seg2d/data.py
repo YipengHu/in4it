@@ -7,7 +7,7 @@ import nibabel as nib
 import h5py
 
 
-data_path = '../../../in4it_data/trus_processed_uint8/'
+data_path = '../../../in4it-data/trus_processed_uint8/'
 image_path = 'images'
 label_path = ['seg_01','seg_02','seg_03']
 save_path = 'dataset'
