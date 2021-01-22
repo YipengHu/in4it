@@ -12,7 +12,7 @@ save_path = "trained/any"
 epoch = 249
 seg_net_imported = tf.saved_model.load(os.path.join(save_path, 'epoch{:d}'.format(epoch)))
 
-batch_size = 1
+batch_size = 3
 data_files = {'test': 'dataset/test.h5', 'val': 'dataset/val.h5'}
 # loader_test = H5DataLoader(data_files["val"], batch_size, training=False)
 loader_test = H5DataLoader(data_files["test"], batch_size, training=False)
@@ -53,9 +53,8 @@ for idx, (frames_test, masks_test) in enumerate(loader_test):
 
         for dd in range(preds_test.shape[0]):
             plt.figure()
-            plt.imshow(preds_test[dd,...])
-            plt.figure()
-            plt.imshow(masks_test[dd,...])
-            plt.figure()
-            plt.imshow(frames_test[dd,...])
+            plt.imshow(tf.concat([
+                preds_test[dd,...],
+                frames_test[dd,...],
+                masks_test[dd,...]], axis=1))
         plt.show()
