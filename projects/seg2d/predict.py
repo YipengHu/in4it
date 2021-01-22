@@ -1,5 +1,5 @@
 import os
-import time
+# import time
 
 import tensorflow as tf
 from matplotlib import pyplot as plt
@@ -8,8 +8,8 @@ from loader import H5DataLoader
 import utils
 
 
-save_path = "results_not"
-epoch = 499
+save_path = "trained/any"
+epoch = 249
 seg_net_imported = tf.saved_model.load(os.path.join(save_path, 'epoch{:d}'.format(epoch)))
 
 batch_size = 1
