@@ -9,7 +9,7 @@ import utils
 
 
 save_path = "trained/any"
-epoch = 249
+epoch = 999
 seg_net_imported = tf.saved_model.load(os.path.join(save_path, 'epoch{:d}'.format(epoch)))
 
 batch_size = 3
