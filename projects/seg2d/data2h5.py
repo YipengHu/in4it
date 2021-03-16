@@ -6,16 +6,18 @@ import h5py
 
 
 
-resample_rate = 5
+resample_rate = 7
+num_cases = 200
 
 data_path = '../../../in4it-data/trus_processed_uint8/'
 image_path = 'images'
 label_path = ['seg_01','seg_02','seg_03']
-filename_h5 = 'dataset%d' % (resample_rate*1e3) +".h5"
+filename_h5 = 'dataset%d-%d' % (resample_rate*10,num_cases) + ".h5"
 h5_id = h5py.File(filename_h5,'a')
 
 image_files = os.listdir(os.path.join(data_path,image_path))
-for fidx,fn in enumerate(image_files):
+for fidx,fn in enumerate(image_files, start=0):
+    if fidx==num_cases: break
 
     fobj = nib.load(os.path.join(data_path,image_path,fn))
     frames = np.asarray(fobj.dataobj) if (len(fobj.shape)==3) else np.asarray(fobj.dataobj)[...,np.newaxis]
@@ -33,6 +35,8 @@ for fidx,fn in enumerate(image_files):
         h5_id.create_dataset('/frame_%04d_%03d' % (fidx,dd), frames.shape[0:2], dtype=frames.dtype, data=frames[:,:,dd]) # [frame_case_frame]
         for ll in range(labels.shape[3]):
             h5_id.create_dataset('/label_%04d_%03d_%02d' % (fidx,dd,ll), labels.shape[0:2], dtype=labels.dtype, data=labels[:,:,dd,ll]) # [label_case_frame_obs]
+    
+
 
 h5_id.flush()
 h5_id.close()
